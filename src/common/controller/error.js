@@ -8,18 +8,23 @@ export default class extends think.controller.base {
    * @param  {Number} status []
    * @return {Promise}        []
    */
-  displayErrorPage(status){
+  displayError(status){
 
-    let lang = this.lang();
-    let supportLangs = think.config('locale.support');
-    if(lang && supportLangs.indexOf(lang) === -1){
-      lang = '';
+    //hide error message on production env
+    if(think.env === 'production'){
+      this.http.error = null;
     }
-    if(!lang){
-      lang = supportLangs[0];
+
+    let errorConfig = this.config('error');
+    let message = this.http.error && this.http.error.message || '';
+    if(this.isJsonp()){
+      return this.jsonp({
+        [errorConfig.key]: status,
+        [errorConfig.msg]: message
+      })
+    }else if(this.isAjax()){
+      return this.fail(status, message);
     }
-    this.lang(lang, true);
-    
 
     let module = 'common';
     if(think.mode !== think.mode_module){
@@ -27,42 +32,46 @@ export default class extends think.controller.base {
     }
     let file = `${module}/error/${status}.html`;
     let options = this.config('tpl');
-    options = think.extend({}, options, {type: 'ejs'});
-    return this.display(file, options);
+    options = think.extend({}, options, {type: 'base', file_depr: '_'});
+    this.fetch(file, {}, options).then(content => {
+      content = content.replace('ERROR_MESSAGE', message);
+      this.type(options.content_type);
+      this.end(content);
+    });
   }
   /**
    * Bad Request 
    * @return {Promise} []
    */
   _400Action(){
-    return this.displayErrorPage(400);
+    return this.displayError(400);
   }
   /**
    * Forbidden 
    * @return {Promise} []
    */
   _403Action(){
-    return this.displayErrorPage(403);
+    return this.displayError(403);
   }
   /**
    * Not Found 
    * @return {Promise}      []
    */
   _404Action(){
-    return this.displayErrorPage(404);
+    return this.displayError(404);
   }
   /**
    * Internal Server Error
    * @return {Promise}      []
    */
   _500Action(){
-    return this.displayErrorPage(500);
+    return this.displayError(500);
   }
   /**
    * Service Unavailable
    * @return {Promise}      []
    */
   _503Action(){
-    return this.displayErrorPage(503);
+    return this.displayError(503);
   }
 }

@@ -1,9 +1,9 @@
 {
   "apps": [{
-    "name": "www.thinkjs.org",
+    "name": "webapp",
     "script": "www/production.js",
-    "cwd": "/home/qiwoo/www/www.thinkjs.org",
-    "exec_mode": "fork",
+    "cwd": "/Users/wangwenbo/work/web/git/webapps/webapp",
+    "exec_mode": "cluster",
     "instances": 0,
     "max_memory_restart": "1G",
     "autorestart": true,

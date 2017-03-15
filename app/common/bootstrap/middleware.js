@@ -1,75 +1,15 @@
-'use strict';
-
-var _fs = require('fs');
-
-var _fs2 = _interopRequireDefault(_fs);
-
-var _path = require('path');
-
-var _path2 = _interopRequireDefault(_path);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-//get support locales list
-var viewPath = think.ROOT_PATH + '/view';
-var dirnames = _fs2.default.readdirSync(viewPath);
-think.config('locale.support', dirnames);
+/**
+ * this file will be loaded before server started
+ * you can register middleware
+ * https://thinkjs.org/doc/middleware.html
+ */
 
 /**
- * get lang form http pathname
- * @param  {Object} http []
- * @return {}      []
+ * 
+ * think.middleware('xxx', http => {
+ *   
+ * })
+ * 
  */
-think.middleware('get_lang', function (http) {
-  var supportLangs = think.config('locale.support');
-  var lang = http.pathname.split('/')[0];
-
-  var cookieName = http.config('locale').cookie_name;
-  var cookieValue = http.cookie(cookieName);
-
-  if (supportLangs.indexOf(lang) > -1) {
-    http.pathname = http.pathname.substr(lang.length + 1);
-    if (lang !== cookieValue) {
-      http.cookie(cookieName, lang, { timeout: 365 * 24 * 3600 });
-    }
-  } else {
-    lang = http.lang().toLowerCase();
-    if (supportLangs.indexOf(lang) === -1) {
-      lang = http.config('locale.default');
-    }
-  }
-  http.lang(lang, true);
-});
-
-think.middleware('replace_image', function (http, content) {
-  var accept = http.header('accept');
-  if (accept.indexOf('image/webp') === -1) {
-    return content;
-  }
-  return content.replace(/http:\/\/p(\d)\.qhimg\.com\/(\w+)\.(\w+)/g, function (a, b, c, d) {
-    return 'http://p' + b + '.qhimg.com/' + c + '.webp';
-  }).replace(/https:\/\/p\.ssl\.qhimg\.com\/(\w+)\.(\w+)/g, function (a, b) {
-    return 'https://p.ssl.qhimg.com/' + b + '.webp';
-  });
-});
-/**
- * log request
- * @param  {[type]} http [description]
- * @return {[type]}      [description]
- */
-think.middleware('log_request', function (http) {
-  var userAgent = http.userAgent();
-  var blackList = ['http://', 'https://', 'jiankongbao', 'yunjiankong'];
-  var flag = blackList.some(function (item) {
-    return userAgent.indexOf(item) > -1;
-  });
-  if (flag) {
-    return;
-  }
-
-  var ip = http.ip();
-  var log = '[' + think.datetime() + '] - ' + ip + ' - "' + http.url + '" - "' + userAgent + '"';
-  var logPath = think.RUNTIME_PATH + '/log/' + think.datetime(new Date(), 'YYYY-MM-DD') + '.log';
-  think.mkdir(_path2.default.dirname(logPath));
-  _fs2.default.appendFile(logPath, log + '\n', function () {});
-});
+"use strict";
+//# sourceMappingURL=middleware.js.map

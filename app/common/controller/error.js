@@ -32,17 +32,23 @@ var _class = function (_think$controller$bas) {
    * @param  {Number} status []
    * @return {Promise}        []
    */
-  _class.prototype.displayErrorPage = function displayErrorPage(status) {
+  _class.prototype.displayError = function displayError(status) {
+    var _this2 = this;
 
-    var lang = this.lang();
-    var supportLangs = think.config('locale.support');
-    if (lang && supportLangs.indexOf(lang) === -1) {
-      lang = '';
+    //hide error message on production env
+    if (think.env === 'production') {
+      this.http.error = null;
     }
-    if (!lang) {
-      lang = supportLangs[0];
+
+    var errorConfig = this.config('error');
+    var message = this.http.error && this.http.error.message || '';
+    if (this.isJsonp()) {
+      var _jsonp;
+
+      return this.jsonp((_jsonp = {}, _jsonp[errorConfig.key] = status, _jsonp[errorConfig.msg] = message, _jsonp));
+    } else if (this.isAjax()) {
+      return this.fail(status, message);
     }
-    this.lang(lang, true);
 
     var module = 'common';
     if (think.mode !== think.mode_module) {
@@ -50,8 +56,12 @@ var _class = function (_think$controller$bas) {
     }
     var file = module + '/error/' + status + '.html';
     var options = this.config('tpl');
-    options = think.extend({}, options, { type: 'ejs' });
-    return this.display(file, options);
+    options = think.extend({}, options, { type: 'base', file_depr: '_' });
+    this.fetch(file, {}, options).then(function (content) {
+      content = content.replace('ERROR_MESSAGE', message);
+      _this2.type(options.content_type);
+      _this2.end(content);
+    });
   };
   /**
    * Bad Request 
@@ -60,7 +70,7 @@ var _class = function (_think$controller$bas) {
 
 
   _class.prototype._400Action = function _400Action() {
-    return this.displayErrorPage(400);
+    return this.displayError(400);
   };
   /**
    * Forbidden 
@@ -69,7 +79,7 @@ var _class = function (_think$controller$bas) {
 
 
   _class.prototype._403Action = function _403Action() {
-    return this.displayErrorPage(403);
+    return this.displayError(403);
   };
   /**
    * Not Found 
@@ -78,7 +88,7 @@ var _class = function (_think$controller$bas) {
 
 
   _class.prototype._404Action = function _404Action() {
-    return this.displayErrorPage(404);
+    return this.displayError(404);
   };
   /**
    * Internal Server Error
@@ -87,7 +97,7 @@ var _class = function (_think$controller$bas) {
 
 
   _class.prototype._500Action = function _500Action() {
-    return this.displayErrorPage(500);
+    return this.displayError(500);
   };
   /**
    * Service Unavailable
@@ -96,10 +106,11 @@ var _class = function (_think$controller$bas) {
 
 
   _class.prototype._503Action = function _503Action() {
-    return this.displayErrorPage(503);
+    return this.displayError(503);
   };
 
   return _class;
 }(think.controller.base);
 
 exports.default = _class;
+//# sourceMappingURL=error.js.map
